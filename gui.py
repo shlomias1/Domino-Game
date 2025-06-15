@@ -1,4 +1,3 @@
-# gui.py
 import tkinter as tk
 from tkinter import messagebox
 from domino_game import DominoGame
@@ -10,7 +9,7 @@ class DominoGUI:
         self.game = DominoGame(num_players)
         self.buttons = []
 
-        self.board_label = tk.Label(self.root, text="Board: []", font=("Arial", 14))
+        self.board_label = tk.Label(self.root, text="", font=("Courier", 16))
         self.board_label.pack(pady=10)
 
         self.info_label = tk.Label(self.root, text=f"Player {self.game.current_player + 1}'s Turn", font=("Arial", 12))
@@ -24,6 +23,11 @@ class DominoGUI:
 
         self.update_hand_display()
 
+    def format_domino_board(self):
+        board_tiles = self.game.current_board()
+        domino_str = "  ".join([f"[{a}|{b}]" for a, b in board_tiles])
+        return f"Board: {domino_str}"
+
     def update_hand_display(self):
         for btn in self.buttons:
             btn.destroy()
@@ -31,12 +35,12 @@ class DominoGUI:
 
         player_hand = self.game.player_hand(self.game.current_player)
         for tile in player_hand:
-            btn = tk.Button(self.hand_frame, text=str(tile), width=10,
+            btn = tk.Button(self.hand_frame, text=f"[{tile[0]}|{tile[1]}]", width=6,
                             command=lambda t=tile: self.play_tile(t))
             btn.pack(side=tk.LEFT, padx=2)
             self.buttons.append(btn)
 
-        self.board_label.config(text=f"Board: {self.game.current_board()}")
+        self.board_label.config(text=self.format_domino_board())
         self.info_label.config(text=f"Player {self.game.current_player + 1}'s Turn")
 
     def play_tile(self, tile):
@@ -58,7 +62,7 @@ class DominoGUI:
     def draw_tile(self):
         tile = self.game.draw_tile(self.game.current_player)
         if tile:
-            messagebox.showinfo("Tile Drawn", f"You drew: {tile}")
+            messagebox.showinfo("Tile Drawn", f"You drew: [{tile[0]}|{tile[1]}]")
         else:
             messagebox.showinfo("No Tiles", "No tiles left to draw.")
         self.update_hand_display()
