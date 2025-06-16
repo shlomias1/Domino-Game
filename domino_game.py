@@ -33,12 +33,11 @@ class DominoGame:
     def play_tile(self, player_idx, tile):
         left = self.board.head.value[0] if self.board.head else None
         right = self.board.tail.value[1] if self.board.tail else None
-
         if not self.board.head:
             self.board.add_to_head(tile)
-        elif tile[1] == left:
-            self.board.add_to_head((tile[1], tile[0]))
         elif tile[0] == left:
+            self.board.add_to_head((tile[1], tile[0]))
+        elif tile[1] == left:
             self.board.add_to_head(tile)
         elif tile[0] == right:
             self.board.add_to_tail(tile)
@@ -46,7 +45,6 @@ class DominoGame:
             self.board.add_to_tail((tile[1], tile[0]))
         else:
             return False  # invalid move
-
         self.players[player_idx].remove(tile)
         return True
 
