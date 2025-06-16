@@ -1,4 +1,3 @@
-# gui.py
 import tkinter as tk
 from tkinter import messagebox
 from domino_game import DominoGame
@@ -14,7 +13,7 @@ class DominoGUI:
         self.board_label = tk.Label(self.root, text="", font=("Courier", 16))
         self.board_label.pack(pady=10)
 
-        self.info_label = tk.Label(self.root, text=f"Player {self.game.current_player + 1}'s Turn", font=("Arial", 12))
+        self.info_label = tk.Label(self.root, text=f"Player {self.game.current_player + 1}'s Turn", font=("Tahoma", 12))
         self.info_label.pack(pady=5)
 
         self.hand_frame = tk.Frame(self.root)
@@ -54,7 +53,9 @@ class DominoGUI:
         self.buttons.clear()
         player_hand = self.game.player_hand(self.game.current_player)
         for tile in player_hand:
-            btn = tk.Button(self.hand_frame, text=f"[{tile[0]}|{tile[1]}]", width=6,
+            is_valid = self.game.valid_moves(tile)
+            color = "green" if is_valid else "red"
+            btn = tk.Button(self.hand_frame, text=f"[{tile[0]}|{tile[1]}]", width=6, bg=color,
                             command=lambda t=tile: self.play_tile(t))
             btn.pack(side=tk.LEFT, padx=2)
             self.buttons.append(btn)
