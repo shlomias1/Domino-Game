@@ -1,3 +1,4 @@
+# gui.py
 import tkinter as tk
 from tkinter import messagebox
 from domino_game import DominoGame
@@ -8,6 +9,7 @@ class DominoGUI:
         self.root.title("Domino Game")
         self.game = DominoGame(num_players)
         self.buttons = []
+        self.last_played = None 
 
         self.board_label = tk.Label(self.root, text="", font=("Courier", 16))
         self.board_label.pack(pady=10)
@@ -25,37 +27,76 @@ class DominoGUI:
 
     def format_domino_board(self):
         board_tiles = self.game.current_board()
-        domino_str = "  ".join([f"[{a}|{b}]" for a, b in board_tiles])
-        return f"Board: {domino_str}"
+        if not board_tiles:
+            return "Board: []"
+        display = f"[{board_tiles[0][0]}|{board_tiles[0][1]}]"
+        last_right = board_tiles[0][1]
+        last_left = board_tiles[0][0]
+        for i in range(1, len(board_tiles)):
+            curr = board_tiles[i]
+            if last_right == curr[0]:
+                display += f" → [{curr[0]}|{curr[1]}]"
+                last_right = curr[1]
+            elif last_right == curr[1]:
+                display += f" → [{curr[0]}|{curr[1]}]"
+                last_right = curr[0]
+            elif last_left == curr[0]:
+                display += f" → [{curr[0]}|{curr[1]}]"
+                last_left = curr[0]
+            elif last_left == curr[1]:
+                display += f" → [{curr[0]}|{curr[1]}]"
+                last_left = curr[1]
+        return f"Board: {display}"
 
     def update_hand_display(self):
         for btn in self.buttons:
             btn.destroy()
         self.buttons.clear()
-
         player_hand = self.game.player_hand(self.game.current_player)
         for tile in player_hand:
             btn = tk.Button(self.hand_frame, text=f"[{tile[0]}|{tile[1]}]", width=6,
                             command=lambda t=tile: self.play_tile(t))
             btn.pack(side=tk.LEFT, padx=2)
             self.buttons.append(btn)
-
         self.board_label.config(text=self.format_domino_board())
         self.info_label.config(text=f"Player {self.game.current_player + 1}'s Turn")
 
     def play_tile(self, tile):
-        if self.game.valid_moves(tile):
+        flipped = False
+
+        # Special case: first tile in game
+        if not self.game.board.head:
             success = self.game.play_tile(self.game.current_player, tile)
-            if success:
-                winner = self.game.has_winner()
-                if winner is not None:
-                    messagebox.showinfo("Game Over", f"Player {winner + 1} wins!")
-                    self.root.quit()
-                else:
-                    self.game.next_turn()
-                    self.update_hand_display()
+            self.last_played = (tile, flipped)
+        else:
+            left = self.game.board.head.value[0]
+            right = self.game.board.tail.value[1]
+
+            # Try placing on left
+            if tile[1] == left:
+                success = self.game.play_tile(self.game.current_player, tile)
+            elif tile[0] == left:
+                flipped = True
+                success = self.game.play_tile(self.game.current_player, tile)
+
+            # Try placing on right
+            elif tile[0] == right:
+                success = self.game.play_tile(self.game.current_player, tile)
+            elif tile[1] == right:
+                flipped = True
+                success = self.game.play_tile(self.game.current_player, tile)
             else:
-                messagebox.showwarning("Invalid Move", "Cannot place this tile.")
+                success = False
+
+        if success:
+            self.last_played = (tile, flipped)
+            winner = self.game.has_winner()
+            if winner is not None:
+                messagebox.showinfo("Game Over", f"Player {winner + 1} wins!")
+                self.root.quit()
+            else:
+                self.game.next_turn()
+                self.update_hand_display()
         else:
             messagebox.showwarning("Invalid Move", "Tile doesn't match the board.")
 
